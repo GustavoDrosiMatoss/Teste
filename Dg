@@ -1,0 +1,230 @@
+-- =====================================================
+-- ESPERA JOGO
+-- =====================================================
+repeat task.wait() until game:IsLoaded()
+
+-- =====================================================
+-- SERVICES
+-- =====================================================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local Player = Players.LocalPlayer
+local Remote = ReplicatedStorage.BridgeNet2.dataRemoteEvent
+
+-- =====================================================
+-- FLUENT UI
+-- =====================================================
+local Fluent = loadstring(game:HttpGet(
+    "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
+))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Allan Hub - Auto Dungeon",
+    SubTitle = "Fast + Stable (Final)",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(520, 360),
+    Acrylic = true,
+    Theme = "dark",
+    MinimizeKey = Enum.KeyCode.End
+})
+
+local Tabs = {
+    Dungeon = Window:AddTab({ Title = "Dungeon", Icon = "swords" })
+}
+
+-- =====================================================
+-- CONFIG
+-- =====================================================
+local Config = {
+    AutoFarm = false,
+    AutoBuyTicket = false
+}
+
+Tabs.Dungeon:AddToggle("AutoFarm", {
+    Title = "Auto Farm Dungeon",
+    Default = false,
+    Callback = function(v)
+        Config.AutoFarm = v
+    end
+})
+
+Tabs.Dungeon:AddToggle("AutoBuy", {
+    Title = "Auto Buy Ticket",
+    Default = false,
+    Callback = function(v)
+        Config.AutoBuyTicket = v
+    end
+})
+
+local Status = Tabs.Dungeon:AddParagraph({
+    Title = "Status",
+    Content = "Idle"
+})
+
+-- =====================================================
+-- STATES
+-- =====================================================
+local Creating = false
+local StartingDungeon = false
+local DungeonRunning = false
+local SpawnConfirmTime = 0
+local currentTween = nil
+
+-- =====================================================
+-- BUY TICKET
+-- =====================================================
+local function BuyTicket()
+    Remote:FireServer(unpack({
+        [1] = {
+            [1] = { Event = "DungeonAction", Action = "BuyTicket" },
+            [2] = "\4"
+        }
+    }))
+end
+
+-- =====================================================
+-- CREATE + START DUNGEON
+-- =====================================================
+local function CreateDungeon()
+    if Creating or StartingDungeon then return end
+
+    Creating = true
+    StartingDungeon = true
+    Status:SetDesc("Creating Dungeon")
+
+    if Config.AutoBuyTicket then
+        BuyTicket()
+        task.wait(1.2)
+    end
+
+    -- CREATE
+    Remote:FireServer(unpack({
+        [1] = {
+            [1] = { Event = "DungeonAction", Action = "Create" },
+            [2] = "\4"
+        }
+    }))
+
+    task.wait(2)
+
+    -- START
+    Remote:FireServer(unpack({
+        [1] = {
+            [1] = {
+                Event = "DungeonAction",
+                Action = "Start",
+                Dungeon = Player.UserId
+            },
+            [2] = "\4"
+        }
+    }))
+
+    task.delay(2.2, function()
+        Creating = false
+    end)
+end
+
+-- =====================================================
+-- ENEMIES
+-- =====================================================
+local EnemiesFolder = workspace.__Main.__Enemies.Server
+
+local function GetClosestEnemy()
+    local char = Player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then
+        return nil
+    end
+
+    local pos = char.HumanoidRootPart.Position
+    local best, dist = nil, math.huge
+
+    for _, e in ipairs(EnemiesFolder:GetChildren()) do
+        local hp = e:GetAttribute("HP")
+        if hp and hp > 0 and e.Position then
+            local d = (pos - e.Position).Magnitude
+            if d < dist then
+                dist = d
+                best = e
+            end
+        end
+    end
+
+    return best
+end
+
+local function MoveToEnemy(enemy)
+    local root = Player.Character.HumanoidRootPart
+    if currentTween then currentTween:Cancel() end
+
+    currentTween = TweenService:Create(
+        root,
+        TweenInfo.new(0.3, Enum.EasingStyle.Linear),
+        { CFrame = enemy.CFrame }
+    )
+    currentTween:Play()
+end
+
+-- =====================================================
+-- MAIN LOOP (FINAL)
+-- =====================================================
+RunService.Heartbeat:Connect(function(dt)
+    if not Config.AutoFarm then
+        DungeonRunning = false
+        SpawnConfirmTime = 0
+        return
+    end
+
+    local enemies = EnemiesFolder:GetChildren()
+    local enemy = GetClosestEnemy()
+
+    -- 🔥 INIMIGOS → FARM
+    if enemy then
+        Status:SetDesc("Farming Enemies")
+        DungeonRunning = true
+        StartingDungeon = false
+        SpawnConfirmTime = 0
+        MoveToEnemy(enemy)
+        return
+    end
+
+    -- 🔥 SEM INIMIGOS
+    if DungeonRunning then
+        if #enemies == 0 then
+            SpawnConfirmTime += dt
+        else
+            SpawnConfirmTime = 0
+        end
+
+        Status:SetDesc(string.format(
+            "Finishing Dungeon... %.1fs",
+            SpawnConfirmTime
+        ))
+
+        if SpawnConfirmTime >= 1.8 then
+            Status:SetDesc("Dungeon Solada → Recriando")
+            DungeonRunning = false
+            SpawnConfirmTime = 0
+            CreateDungeon()
+        end
+    else
+        -- Dungeon ainda está iniciando
+        if StartingDungeon then
+            Status:SetDesc("Starting Dungeon...")
+        else
+            Status:SetDesc("Waiting Dungeon Start")
+            CreateDungeon()
+        end
+    end
+end)
+
+-- =====================================================
+-- NOTIFY
+-- =====================================================
+Fluent:Notify({
+    Title = "Allan Hub",
+    Content = "Auto Dungeon FINAL estável carregado",
+    Duration = 6
+})
