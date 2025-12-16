@@ -770,7 +770,7 @@ Tabs.Castle:AddToggle("AutoCasteloOnly", {
 local selectedCastleSpeed = ConfigSystem.CurrentConfig.CastleSpeed or "1"
 local castleSpeedEnabled = ConfigSystem.CurrentConfig.CastleSpeedEnabled or false
 
-Tabs.Castelo Infernal:AddDropdown("CastleSpeedDropdown", {
+Tabs.Castle:AddDropdown("CastleSpeedDropdown", {
     Title = "Speed do Castelo Infernal",
     Values = {"1", "2", "4"},
     Multi = false,
