@@ -468,20 +468,21 @@ end
 -- =====================================================
 local function applyCastleSpeed()
     if not castleSpeedEnabled then return end
-    if not getCurrentCastleFloor() then return end
 
-    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack({
+    local floor = getCurrentCastleFloor()
+    if not floor then return end -- FORA DO CASTELO = NÃO EXECUTA
+
+    Remote:FireServer(unpack({
         {
             {
                 Event = "CastleAction",
                 Action = "SpeedUp",
-                Speed = tonumber(selectedCastleSpeed)
+                Speed = tonumber(selectedCastleSpeed) or 1
             },
             "\4"
         }
     }))
 end
-
 -- =====================================================
 -- LOOPS
 -- =====================================================
@@ -516,8 +517,9 @@ task.spawn(function()
 end)
 
 -- =====================================================
--- UI CASTELO (100% FUNCIONAL)
+-- CASTELO INFERNAL - UI (SAFE)
 -- =====================================================
+
 Tabs.Castle:AddInput("CastleEntryFloor", {
     Title = "Andar de Entrada",
     Default = tostring(entryFloor),
@@ -525,8 +527,6 @@ Tabs.Castle:AddInput("CastleEntryFloor", {
     Finished = true,
     Callback = function(v)
         entryFloor = tonumber(v) or entryFloor
-        ConfigSystem.CurrentConfig.CastleEntryFloor = entryFloor
-        ConfigSystem.SaveConfig()
     end
 })
 
@@ -537,54 +537,64 @@ Tabs.Castle:AddInput("CastleResetFloor", {
     Finished = true,
     Callback = function(v)
         resetFloor = tonumber(v) or resetFloor
-        ConfigSystem.CurrentConfig.CastleResetFloor = resetFloor
-        ConfigSystem.SaveConfig()
     end
 })
 
 Tabs.Castle:AddToggle("CastleINF", {
     Title = "Castle INF (Farm + Portal)",
-    Default = ConfigSystem.CurrentConfig.CastleInfToggle or false,
+    Default = false,
     Callback = function(v)
         castleInfEnabled = v
-        ConfigSystem.CurrentConfig.CastleInfToggle = v
-        ConfigSystem.SaveConfig()
+        if v then
+            castleInfLoop()
+        end
     end
 })
 
 Tabs.Castle:AddToggle("AutoCastle", {
-    Title = "Auto Castle (Criar + Reset)",
-    Default = ConfigSystem.CurrentConfig.CastleToggle or false,
+    Title = "Auto Castle (Create + Reset)",
+    Default = false,
     Callback = function(v)
         castleEnabled = v
-        ConfigSystem.CurrentConfig.CastleToggle = v
-        ConfigSystem.SaveConfig()
+        if v then
+            autoCastleLoop()
+        end
+    end
+})
+
+Tabs.Castle:AddToggle("CastleCreateOnly", {
+    Title = "Auto Castle (Criar Apenas)",
+    Default = false,
+    Callback = function(v)
+        castleCreateOnlyEnabled = v
+        if v then
+            castleCreateOnlyLoop()
+        end
     end
 })
 
 Tabs.Castle:AddDropdown("CastleSpeed", {
     Title = "Speed do Castelo",
     Values = {"1","2","4"},
-    Default = selectedCastleSpeed,
+    Default = "1",
     Callback = function(v)
-        selectedCastleSpeed = v
-        ConfigSystem.CurrentConfig.CastleSpeed = v
-        ConfigSystem.SaveConfig()
-        applyCastleSpeed()
+        selectedCastleSpeed = tonumber(v)
+        if castleSpeedEnabled then
+            applyCastleSpeed()
+        end
     end
 })
 
 Tabs.Castle:AddToggle("CastleSpeedEnabled", {
-    Title = "Ativar Speed",
-    Default = castleSpeedEnabled,
+    Title = "Ativar Speed do Castelo",
+    Default = false,
     Callback = function(v)
         castleSpeedEnabled = v
-        ConfigSystem.CurrentConfig.CastleSpeedEnabled = v
-        ConfigSystem.SaveConfig()
-        applyCastleSpeed()
+        if v then
+            applyCastleSpeed()
+        end
     end
 })
-
 -- =====================================================
 -- NOTIFY
 -- =====================================================
