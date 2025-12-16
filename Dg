@@ -1,3 +1,4 @@
+
 -- =====================================================
 -- ESPERA JOGO
 -- =====================================================
@@ -21,31 +22,47 @@ local Fluent = loadstring(game:HttpGet(
     "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
 ))()
 
+local SaveManager = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"
+))()
+
 local Window = Fluent:CreateWindow({
     Title = "Allan Hub - Auto Dungeon",
-    SubTitle = "Fast + Stable (Final)",
+    SubTitle = "Auto Save Enabled",
     TabWidth = 160,
-    Size = UDim2.fromOffset(520, 360),
+    Size = UDim2.fromOffset(520, 400),
     Acrylic = true,
     Theme = "dark",
     MinimizeKey = Enum.KeyCode.End
 })
 
+SaveManager:SetLibrary(Fluent)
+SaveManager:SetFolder("AllanHub")
+
+-- =====================================================
+-- TABS
+-- =====================================================
 local Tabs = {
-    Dungeon = Window:AddTab({ Title = "Dungeon", Icon = "swords" })
+    Dungeon = Window:AddTab({ Title = "Dungeon", Icon = "swords" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
 -- =====================================================
--- CONFIG
+-- CONFIG (VALORES REAIS)
 -- =====================================================
 local Config = {
     AutoFarm = false,
-    AutoBuyTicket = false
+    AutoBuyTicket = false,
+    MoveMode = "Tween"
 }
 
+-- =====================================================
+-- UI (COM FLAGS → SALVÁVEL)
+-- =====================================================
 Tabs.Dungeon:AddToggle("AutoFarm", {
     Title = "Auto Farm Dungeon",
     Default = false,
+    Flag = "AutoFarmDungeon",
     Callback = function(v)
         Config.AutoFarm = v
     end
@@ -54,8 +71,19 @@ Tabs.Dungeon:AddToggle("AutoFarm", {
 Tabs.Dungeon:AddToggle("AutoBuy", {
     Title = "Auto Buy Ticket",
     Default = false,
+    Flag = "AutoBuyTicket",
     Callback = function(v)
         Config.AutoBuyTicket = v
+    end
+})
+
+Tabs.Dungeon:AddDropdown("MoveMode", {
+    Title = "Movement Mode",
+    Values = { "Tween", "Teleport" },
+    Default = "Tween",
+    Flag = "MovementMode",
+    Callback = function(v)
+        Config.MoveMode = v
     end
 })
 
@@ -63,6 +91,13 @@ local Status = Tabs.Dungeon:AddParagraph({
     Title = "Status",
     Content = "Idle"
 })
+
+-- =====================================================
+-- SAVE MANAGER UI
+-- =====================================================
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+SaveManager:LoadAutoloadConfig()
 
 -- =====================================================
 -- STATES
@@ -100,7 +135,6 @@ local function CreateDungeon()
         task.wait(1.2)
     end
 
-    -- CREATE
     Remote:FireServer(unpack({
         [1] = {
             [1] = { Event = "DungeonAction", Action = "Create" },
@@ -110,7 +144,6 @@ local function CreateDungeon()
 
     task.wait(2)
 
-    -- START
     Remote:FireServer(unpack({
         [1] = {
             [1] = {
@@ -134,12 +167,95 @@ local EnemiesFolder = workspace.__Main.__Enemies.Server
 
 local function GetClosestEnemy()
     local char = Player.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then
-        return nil
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+
+    local pos = root.Position
+    local best, dist = nil, math.huge
+
+    for _, e in ipairs(EnemiesFolder:GetChildren()) do
+        local hp = e:GetAttribute("HP")
+        if hp and hp > 0 and e.Position then
+            local d = (pos - e.Position).Magnitude
+            if d < dist then
+                dist = d
+                best = e
+            end
+        end
     end
 
-    local pos = char.HumanoidRootPart.Position
-    local best, dist = nil, math.huge
+    return best
+end
+
+-- =====================================================
+-- MOVEMENT
+-- =====================================================
+local function MoveToEnemy(enemy)
+    local root = Player.Character.HumanoidRootPart
+
+    if Config.MoveMode == "Teleport" then
+        if currentTween then currentTween:Cancel() end
+        root.CFrame = enemy.CFrame
+    else
+        if currentTween then currentTween:Cancel() end
+        currentTween = TweenService:Create(
+            root,
+            TweenInfo.new(0.3),
+            { CFrame = enemy.CFrame }
+        )
+        currentTween:Play()
+    end
+end
+
+-- =====================================================
+-- MAIN LOOP
+-- =====================================================
+RunService.Heartbeat:Connect(function(dt)
+    if not Config.AutoFarm then
+        DungeonRunning = false
+        SpawnConfirmTime = 0
+        return
+    end
+
+    local enemy = GetClosestEnemy()
+
+    if enemy then
+        Status:SetDesc("Farming Enemies (" .. Config.MoveMode .. ")")
+        DungeonRunning = true
+        StartingDungeon = false
+        SpawnConfirmTime = 0
+        MoveToEnemy(enemy)
+        return
+    end
+
+    if DungeonRunning then
+        SpawnConfirmTime += dt
+        Status:SetDesc(string.format("Finishing Dungeon... %.1fs", SpawnConfirmTime))
+
+        if SpawnConfirmTime >= 1.8 then
+            Status:SetDesc("Dungeon Solada → Recriando")
+            DungeonRunning = false
+            SpawnConfirmTime = 0
+            CreateDungeon()
+        end
+    else
+        if StartingDungeon then
+            Status:SetDesc("Starting Dungeon...")
+        else
+            Status:SetDesc("Waiting Dungeon Start")
+            CreateDungeon()
+        end
+    end
+end)
+
+-- =====================================================
+-- NOTIFY
+-- =====================================================
+Fluent:Notify({
+    Title = "Allan Hub",
+    Content = "Configurações salvas automaticamente",
+    Duration = 6
+})    local best, dist = nil, math.huge
 
     for _, e in ipairs(EnemiesFolder:GetChildren()) do
         local hp = e:GetAttribute("HP")
