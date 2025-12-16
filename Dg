@@ -331,7 +331,7 @@ local castleSessionActive = false
 
 -- Configuração do andar de entrada (padrão 125)
 if ConfigSystem.DefaultConfig.CastleEntryFloor == nil then
-    ConfigSystem.DefaultConfig.CastleEntryFloor = 125
+    ConfigSystem.DefaultConfig.CastleEntryFloor = 480
 end
 if ConfigSystem.CurrentConfig.CastleEntryFloor == nil then
     ConfigSystem.CurrentConfig.CastleEntryFloor = ConfigSystem.DefaultConfig.CastleEntryFloor
@@ -340,7 +340,7 @@ local entryFloor = ConfigSystem.CurrentConfig.CastleEntryFloor
 
 -- Configuração do andar de reset (padrão 200)
 if ConfigSystem.DefaultConfig.CastleResetFloor == nil then
-    ConfigSystem.DefaultConfig.CastleResetFloor = 200
+    ConfigSystem.DefaultConfig.CastleResetFloor = 495
 end
 if ConfigSystem.CurrentConfig.CastleResetFloor == nil then
     ConfigSystem.CurrentConfig.CastleResetFloor = ConfigSystem.DefaultConfig.CastleResetFloor
@@ -370,7 +370,7 @@ if ConfigSystem.CurrentConfig.CastleCreateOnlyToggle == nil then
 end
 
 -- Input para configurar andar de entrada
-Tabs.dungeon:AddInput("CastleEntryFloor", {
+Tabs.Castle:AddInput("CastleEntryFloor", {
     Title = "Castle Entry Floor",
     Default = tostring(entryFloor),
     Placeholder = "Andar de entrada (ex: 125)",
@@ -387,7 +387,7 @@ Tabs.dungeon:AddInput("CastleEntryFloor", {
 })
 
 -- Input para configurar andar de reset
-Tabs.dungeon:AddInput("CastleResetFloor", {
+Tabs.Castle:AddInput("CastleResetFloor", {
     Title = "Castle Reset Detection Floor",
     Default = tostring(resetFloor),
     Placeholder = "Andar para detectar e resetar (ex: 200)",
@@ -705,7 +705,7 @@ end
 -- ==========================
 
 -- Toggle Castle INF (com auto-boot)
-Tabs.dungeon:AddToggle("CastleINF", {
+Tabs.Castle:AddToggle("CastleINF", {
     Title = "Castle INF (Farm + Portal)",
     Default = ConfigSystem.CurrentConfig.CastleInfToggle or false,
     Callback = function(state)
@@ -721,7 +721,7 @@ Tabs.dungeon:AddToggle("CastleINF", {
 })
 
 -- Toggle Auto Castle (Criação, Detecção e Recriação) (com auto-boot)
-Tabs.dungeon:AddToggle("AutoCastle", {
+Tabs.Castle:AddToggle("AutoCastle", {
     Title = "Auto Castle (Create + Recreate)",
     Default = ConfigSystem.CurrentConfig.CastleToggle or false,
     Callback = function(state)
@@ -749,7 +749,7 @@ Tabs.dungeon:AddToggle("AutoCastle", {
 })
 
 -- Toggle Auto Castelo (Apenas Criar - Loop Contínuo SEM Reset)
-Tabs.dungeon:AddToggle("AutoCasteloOnly", {
+Tabs.Castle:AddToggle("AutoCasteloOnly", {
     Title = "Auto Castelo (Criar Apenas)",
     Description = "Cria e entra automaticamente quando fora do castelo (SEM reset)",
     Default = ConfigSystem.CurrentConfig.CastleCreateOnlyToggle or false,
@@ -770,7 +770,7 @@ Tabs.dungeon:AddToggle("AutoCasteloOnly", {
 local selectedCastleSpeed = ConfigSystem.CurrentConfig.CastleSpeed or "1"
 local castleSpeedEnabled = ConfigSystem.CurrentConfig.CastleSpeedEnabled or false
 
-Tabs.dungeon:AddDropdown("CastleSpeedDropdown", {
+Tabs.Castelo Infernal:AddDropdown("CastleSpeedDropdown", {
     Title = "Speed do Castelo Infernal",
     Values = {"1", "2", "4"},
     Multi = false,
@@ -797,7 +797,7 @@ Tabs.dungeon:AddDropdown("CastleSpeedDropdown", {
     end
 })
 
-Tabs.dungeon:AddToggle("EnableCastleSpeed", {
+Tabs.Castle:AddToggle("EnableCastleSpeed", {
     Title = "Ativar Speed do Castelo",
     Default = castleSpeedEnabled,
     Callback = function(state)
@@ -861,3 +861,4 @@ Fluent:Notify({
     Content = "Auto Dungeon + Auto Renascimento carregado",
     Duration = 6
 })
+
