@@ -316,8 +316,8 @@ end)
 -- =====================================================
 -- CASTELO INFERNAL - VARIÁVEIS
 -- =====================================================
-local entryFloor = tonumber(Fluent.Flags.CastleEntryFloor and Fluent.Flags.CastleEntryFloor.Value) or 125
-local resetFloor = tonumber(Fluent.Flags.CastleResetFloor and Fluent.Flags.CastleResetFloor.Value) or 200
+local entryFloor = 125
+local resetFloor = 200
 
 local castleInfEnabled = false
 local castleEnabled = false
@@ -626,4 +626,3 @@ Fluent:Notify({
     Content = "Auto Dungeon + Auto Renascimento carregado",
     Duration = 6
 })
-
