@@ -1,3 +1,4 @@
+l
 -- =====================================================
 -- ESPERA JOGO
 -- =====================================================
@@ -492,8 +493,6 @@ local function castleInfLoop()
         end
     end)
 end
-})
-
 -- AUTO CASTLE - CRIAÇÃO, DETECÇÃO E RECRIAÇÃO (CORRIGIDO)
 -- ==========================
 
@@ -680,6 +679,7 @@ Tabs.Castle:AddDropdown("CastleSpeedDropdown", {
         end
     end
 })
+
 
 Tabs.Castle:AddToggle("EnableCastleSpeed", {
     Title = "Ativar Speed do Castelo",
