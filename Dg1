@@ -255,27 +255,78 @@ Tabs.Castle:AddToggle("PrioritizeStrong", {
 -- =====================================================
 -- ================= CASTELO LOGIC =====================
 -- =====================================================
-local function createCastle()
-    Remote:FireServer({{{Event="CastleAction",Action="Create"},"\4"}})
-end
 
-local function buyCastleTicket()
-    Remote:FireServer({{{Event="CastleAction",Action="BuyTicket",Type="Gems"},"\4"}})
-end
+-- Detectar andar atual
+local function getCurrentCastleFloor()
+    local main = workspace:FindFirstChild("__Main")
+    if not main then return nil end
+    local world = main:FindFirstChild("__World")
+    if not world then return nil end
 
-local function joinCastle()
-    Remote:FireServer({{{Event="CastleAction",Action="Join",Floor=tostring(Config.CastleEntryFloor),Check=true},"\4"}})
-end
-
-local function getCurrentFloor()
-    local world = workspace.__Main.__World
-    local current
+    local current = nil
     for i = 1, 300 do
         if world:FindFirstChild("Room_" .. i) then
             current = i
         end
     end
+
+    if current then
+            else
+            end
     return current
+end
+
+-- Comprar ticket com gems
+local function buyCastleTicket()
+        local args = {
+        [1] = {
+            [1] = {
+                ["Type"] = "Gems",
+                ["Event"] = "CastleAction",
+                ["Action"] = "BuyTicket"
+            },
+            [2] = "\4"
+        }
+    }
+    pcall(function() 
+        game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args)) 
+    end)
+end
+
+-- Entrar no castelo
+local function joinCastle(floor)
+    floor = floor or entryFloor
+        local joinArgs = {
+        [1] = {
+            [1] = {
+                ["Check"] = true,
+                ["Floor"] = tostring(floor),
+                ["Event"] = "CastleAction",
+                ["Action"] = "Join"
+            },
+            [2] = "\4"
+        }
+    }
+    pcall(function() 
+        game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(joinArgs)) 
+    end)
+end
+
+-- Função para criar o castelo
+local function createCastle()
+        local args = {
+        [1] = {
+            [1] = {
+                ["Event"] = "CastleAction",
+                ["Action"] = "Create"
+            },
+            [2] = "\4"
+        }
+    }
+    pcall(function() 
+        game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args)) 
+    end)
+    task.wait(3)
 end
 
 -- ================= FIRE PORTAL ======================
