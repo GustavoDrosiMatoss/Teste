@@ -18,7 +18,7 @@ local Remote = ReplicatedStorage.BridgeNet2.dataRemoteEvent
 -- FLUENT + SAVE
 -- =====================================================
 local Fluent = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"
+    "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
 ))()
 
 local SaveManager = loadstring(game:HttpGet(
