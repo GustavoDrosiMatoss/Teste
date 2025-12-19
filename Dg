@@ -492,27 +492,30 @@ local function castleInfLoop()
         end
     end)
 end
+-- ==========================
+-- AUTO CASTLE - CRIAÇÃO, DETECÇÃO E RECRIAÇÃO (CORRIGIDO)
+-- ==========================
 
--- Auto Castle Loop
 local function autoCastleLoop()
     task.spawn(function()
         while castleEnabled do
             local currentFloor = getCurrentCastleFloor()
 
             if not currentFloor then
-                -- Fora do castelo → criar, comprar ticket e entrar
-                createCastle()
-                task.wait(1)
+                -- Fora do castelo → comprar ticket, criar e entrar
                 buyCastleTicket()
+                task.wait(1)
+                createCastle()
                 task.wait(1)
                 joinCastle(entryFloor)
                 task.wait(5)
             else
                 -- Dentro do castelo - verifica se deve recriar
                 if currentFloor >= resetFloor then
-                    createCastle()
-                    task.wait(1)
+                    -- PAGAR → CRIAR → ENTRAR
                     buyCastleTicket()
+                    task.wait(1)
+                    createCastle()
                     task.wait(1)
                     joinCastle(entryFloor)
                     task.wait(5)
@@ -527,7 +530,6 @@ local function autoCastleLoop()
         end
     end)
 end
-
 -- Castle Create Only Loop
 local function castleCreateOnlyLoop()
     task.spawn(function()
