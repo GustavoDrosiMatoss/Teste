@@ -1,3 +1,4 @@
+
 -- =====================================================
 -- ESPERA JOGO
 -- =====================================================
@@ -492,11 +493,6 @@ local function castleInfLoop()
         end
     end)
 end
-            if castleSessionActive then
-                castleSessionActive = false
-            end
-        end
-    end
 })
 
 -- AUTO CASTLE - CRIAÇÃO, DETECÇÃO E RECRIAÇÃO (CORRIGIDO)
