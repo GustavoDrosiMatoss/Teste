@@ -493,56 +493,54 @@ local function castleInfLoop()
     end)
 end
 
--- ==========================
--- AUTO CASTLE - CRIAÇÃO, DETECÇÃO E RECRIAÇÃO (CORRIGIDO)
--- ==========================
 
-local function autoCastleLoop()
-    task.spawn(function()
-        while castleEnabled do
-            local currentFloor = getCurrentCastleFloor()
+        if state then
+            createCastle()
+            task.wait(1)
+            buyCastleTicket()
+            task.wait(1)
+            joinCastle(entryFloor)
+            task.wait(2)
 
-            if not currentFloor then
-                -- Fora do castelo → comprar ticket, criar e entrar
-                buyCastleTicket()
-                task.wait(1)
-                createCastle()
-                task.wait(1)
-                joinCastle(entryFloor)
-                task.wait(5)
-            else
-                -- Dentro do castelo - verifica se deve recriar
-                if currentFloor >= resetFloor then
-                    -- PAGAR → CRIAR → ENTRAR
-                    buyCastleTicket()
-                    task.wait(1)
-                    createCastle()
-                    task.wait(1)
-                    joinCastle(entryFloor)
-                    task.wait(5)
-                else
-                    -- Farm mobs enquanto espera
-                    farmCastleMobs()
-                    task.wait(1)
-                end
+            castleSessionActive = true
+            autoCastleLoop()
+        else
+            if castleSessionActive then
+                castleSessionActive = false
             end
-
-            task.wait(0.5)
         end
-    end)
-end
+    end
+})
 
--- Castle Create Only Loop
+Tabs.Castle:AddToggle("AutoCasteloOnly", {
+    Title = "Auto Castelo (Criar Apenas)",
+    Description = "Cria e entra automaticamente quando fora do castelo (SEM reset)",
+    Default = false,
+    Flag = "CastleCreateOnlyToggle",
+    Callback = function(state)
+        castleCreateOnlyEnabled = state
+        Config.CastleCreateOnly = state
+
+        if state then
+            castleCreateOnlyLoop()
+        end
+    end
+})
+
+-- ==========================
+-- AUTO CASTLE - APENAS CRIAR (LOOP CONTÍNUO SEM RESET) - CORRIGIDO
+-- ==========================
+
 local function castleCreateOnlyLoop()
     task.spawn(function()
         while castleCreateOnlyEnabled do
             local currentFloor = getCurrentCastleFloor()
 
             if not currentFloor then
-                -- Fora do castelo → criar, comprar ticket e entrar
-                createCastle()
-                task.wait(1)
+                -- Fora do castelo → comprar ticket, criar e entrar (ORDEM CORRETA)
                 buyCastleTicket()
+                task.wait(1)
+                createCastle()
                 task.wait(1)
                 joinCastle(entryFloor)
                 task.wait(5)
@@ -556,12 +554,6 @@ local function castleCreateOnlyLoop()
     end)
 end
 
-        Config.CastleCreateOnly = state
-
-        if state then
-            castleCreateOnlyLoop()
-        end
-    end
 -- =====================================================
 -- UI CASTLE (FLAGS = SALVO)
 -- =====================================================
@@ -623,9 +615,9 @@ Tabs.Castle:AddToggle("AutoCastle", {
         Config.AutoCastle = state
 
         if state then
-            createCastle()
+            buyCastleTicket()  -- ✅ ORDEM CORRIGIDA
             task.wait(1)
-            buyCastleTicket()
+            createCastle()
             task.wait(1)
             joinCastle(entryFloor)
             task.wait(2)
@@ -708,7 +700,6 @@ Tabs.Castle:AddToggle("EnableCastleSpeed", {
         end
     end
 })
-
 -- =====================================================
 -- SETTINGS TAB
 -- =====================================================
