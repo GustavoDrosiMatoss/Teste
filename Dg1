@@ -26,8 +26,8 @@ local SaveManager = loadstring(game:HttpGet(
 ))()
 
 local Window = Fluent:CreateWindow({
-Title = "Allan Hub",
-SubTitle = "By AllanXSix",
+Title = "Bug Hub",
+SubTitle = "By AllanHeberty",
 TabWidth = 160,
 Size = UDim2.fromOffset(540, 420),
 Acrylic = true,
@@ -60,7 +60,9 @@ CastleInf = false,
 AutoCastle = false,
 CastleCreateOnly = false,
 CastleSpeed = "1",
-CastleSpeedEnabled = false
+CastleSpeedEnabled = false,
+EntryFloor = 1,
+ResetFloor = 100
 }
 
 -- =====================================================
@@ -393,6 +395,40 @@ end
 -- UI CASTLE (FLAGS = SALVO)
 -- =====================================================
 
+Tabs.Castle:AddInput("EntryFloor", {
+    Title = "Andar de Entrada",
+    Description = "Andar para entrar no castelo",
+    Default = "1",
+    Placeholder = "Digite o andar (ex: 1)",
+    Numeric = true,
+    Finished = true,
+    Flag = "CastleEntryFloor",
+    Callback = function(value)
+        local floor = tonumber(value)
+        if floor and floor > 0 then
+            entryFloor = floor
+            Config.EntryFloor = floor
+        end
+    end
+})
+
+Tabs.Castle:AddInput("ResetFloor", {
+    Title = "Andar de Reset",
+    Description = "Andar para recriar o castelo",
+    Default = "100",
+    Placeholder = "Digite o andar (ex: 100)",
+    Numeric = true,
+    Finished = true,
+    Flag = "CastleResetFloor",
+    Callback = function(value)
+        local floor = tonumber(value)
+        if floor and floor > 0 then
+            resetFloor = floor
+            Config.ResetFloor = floor
+        end
+    end
+})
+
 Tabs.Castle:AddToggle("CastleINF", {
     Title = "Castle INF (Farm + Portal)",
     Default = false,
@@ -718,7 +754,7 @@ end)
 
 -- =====================================================
 -- NOTIFY
--- =====================================================
+-- ==========================
 Fluent:Notify({
 Title = "Allan Hub",
 Content = "Auto Dungeon + Auto Renascimento + Castle carregado",
