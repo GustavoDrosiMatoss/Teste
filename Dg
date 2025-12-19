@@ -32,7 +32,7 @@ local function CreateMinimizeButton()
     MinimizeButton.BorderSizePixel = 0
     MinimizeButton.Position = UDim2.new(0.5, -35, 0, 10)
     MinimizeButton.Size = UDim2.new(0, 70, 0, 70)
-    MinimizeButton.Image = "rbxassetid://YOUR_IMAGE_ID_HERE" -- COLOQUE O ID DA SUA LOGO AQUI
+    MinimizeButton.Image = "rbxassetid://116016360488191" -- COLOQUE O ID DA SUA LOGO AQUI
     MinimizeButton.ScaleType = Enum.ScaleType.Fit
     MinimizeButton.Visible = false
     
