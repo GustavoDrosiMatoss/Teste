@@ -492,6 +492,7 @@ local function castleInfLoop()
         end
     end)
 end
+
 -- ==========================
 -- AUTO CASTLE - CRIAÇÃO, DETECÇÃO E RECRIAÇÃO (CORRIGIDO)
 -- ==========================
@@ -530,6 +531,7 @@ local function autoCastleLoop()
         end
     end)
 end
+
 -- Castle Create Only Loop
 local function castleCreateOnlyLoop()
     task.spawn(function()
