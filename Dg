@@ -203,9 +203,10 @@ end)
 -- TABS
 -- =====================================================
 local Tabs = {
-Dungeon = Window:AddTab({ Title = "Dungeon", Icon = "swords" }),
-Castle = Window:AddTab({ Title = "Castelo Infernal", Icon = "flame" }),
-Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Dungeon = Window:AddTab({ Title = "Dungeon", Icon = "swords" }),
+    Castle  = Window:AddTab({ Title = "Castelo Infernal", Icon = "flame" }),
+    Islands = Window:AddTab({ Title = "Islands", Icon = "map" }),
+    Settings= Window:AddTab({ Title = "Settings", Icon = "settings" }),
 }
 
 -- =====================================================
@@ -915,6 +916,98 @@ while true do
     end  
 end
 
+end)
+
+-- Variáveis
+local SelectedIslandName = nil
+local IslandMap = {}
+
+-- Funções
+local function GetWorld()
+    local extra = workspace:FindFirstChild("__Extra")
+    if not extra then return nil end
+    return extra:FindFirstChild("__Spawns")
+end
+
+local function GetIslandDisplayName(island)
+    if island:GetAttribute("DisplayName") then return island:GetAttribute("DisplayName") end
+    if island:GetAttribute("Name") then return island:GetAttribute("Name") end
+    for _, child in ipairs(island:GetChildren()) do
+        if child:IsA("StringValue") then
+            return child.Value
+        end
+    end
+    return island.Name
+end
+
+local function ScanIslands()
+    table.clear(IslandMap)
+    local World = GetWorld()
+    if not World then return {} end
+    local list = {}
+    for _, island in ipairs(World:GetChildren()) do
+        local displayName = GetIslandDisplayName(island)
+        IslandMap[displayName] = island
+        table.insert(list, displayName)
+    end
+    table.sort(list)
+    return list
+end
+
+local function TeleportToIsland(islandModel)
+    local char = Players.LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+    if islandModel.GetPivot then
+        hrp.CFrame = islandModel:GetPivot() * CFrame.new(0, 10, 0)
+    elseif islandModel.PrimaryPart then
+        hrp.CFrame = islandModel.PrimaryPart.CFrame * CFrame.new(0, 10, 0)
+    elseif islandModel:IsA("BasePart") then
+        hrp.CFrame = islandModel.CFrame * CFrame.new(0, 10, 0)
+    end
+end
+
+-- Dropdown e botão dentro da aba Islands
+local IslandDropdown = Tabs.Islands:AddDropdown("IslandDropdown", {
+    Title = "Ilhas Detectadas",
+    Values = ScanIslands(),
+    Multi = false,
+    Callback = function(value)
+        SelectedIslandName = value
+    end
+})
+
+Tabs.Islands:AddButton({
+    Title = "Teleportar Ilha Selecionada",
+    Description = "Vai para a ilha escolhida no dropdown",
+    Callback = function()
+        if not SelectedIslandName then
+            Fluent:Notify({
+                Title = "Erro",
+                Content = "Nenhuma ilha selecionada",
+                Duration = 3
+            })
+            return
+        end
+        local islandModel = IslandMap[SelectedIslandName]
+        if islandModel then
+            TeleportToIsland(islandModel)
+            Fluent:Notify({
+                Title = "Teleport",
+                Content = "Você foi para " .. SelectedIslandName,
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Atualização automática do dropdown
+task.spawn(function()
+    while task.wait(6) do
+        if IslandDropdown then
+            IslandDropdown:SetValues(ScanIslands())
+        end
+    end
 end)
 
 -- =====================================================
